@@ -1,4 +1,4 @@
-# Windows: flutter build + Inno Setup — artifact bitta o'rnatuvchi .exe (hamma DLL/data ichida).
+# Windows: Release + Inno Setup (o'rnatuvchi) + 7-Zip SFX (bitta portable .exe).
 name: mobile_offline Windows
 
 on:
@@ -41,7 +41,10 @@ jobs:
       - name: Install Inno Setup
         run: choco install innosetup -y --no-progress
 
-      - name: Build single-file installer (.exe)
+      - name: Install 7-Zip
+        run: choco install 7zip.install -y --no-progress
+
+      - name: Build Inno installer (.exe)
         shell: pwsh
         run: |
           $candidates = @(
@@ -49,16 +52,62 @@ jobs:
             (Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe")
           )
           $iscc = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
-          if (-not $iscc) { throw "ISCC.exe topilmadi (Inno Setup o'rnatilmagan)." }
-          Write-Host "Using $iscc"
+          if (-not $iscc) { throw "ISCC.exe topilmadi." }
           $iss = Join-Path $env:GITHUB_WORKSPACE "mobile_offline\windows\installer\hisoblagich_offline.iss"
           & $iscc $iss
-          $out = Join-Path $env:GITHUB_WORKSPACE "mobile_offline\build\installer_out"
-          Get-ChildItem -Recurse $out | Select-Object FullName, Length
+          Get-ChildItem -Recurse (Join-Path $env:GITHUB_WORKSPACE "mobile_offline\build\installer_out")
 
-      - name: Upload installer (bitta fayl)
+      - name: Build 7-Zip self-extracting portable .exe (bitta fayl, yoyiladigan)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $ws = $env:GITHUB_WORKSPACE
+          $rel = Join-Path $ws "mobile_offline\build\windows\x64\runner\Release"
+          $outDir = Join-Path $ws "mobile_offline\build\sfx_out"
+          New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+          $seven = "C:\Program Files\7-Zip\7z.exe"
+          if (-not (Test-Path $seven)) { throw "7z.exe topilmadi" }
+
+          $bundle = Join-Path $ws "bundle_tmp.7z"
+          if (Test-Path $bundle) { Remove-Item $bundle -Force }
+          Push-Location $rel
+          try {
+            & $seven a -t7z -mx=9 $bundle *
+          } finally { Pop-Location }
+
+          $sfx = Get-ChildItem "C:\Program Files\7-Zip" -Filter "7z.sfx" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $sfx) {
+            $sfx = Get-ChildItem "C:\Program Files\7-Zip" -Filter "*.sfx" -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
+          if (-not $sfx) {
+            Get-ChildItem "C:\Program Files\7-Zip"
+            throw "7z.sfx topilmadi — 7-Zip to'liq o'rnatilmagan."
+          }
+
+          $cfg = Join-Path $ws "sfx_config.txt"
+          $utf8BOM = New-Object System.Text.UTF8Encoding $true
+          $text = ";!@Install@!UTF-8!`r`nTitle=Hisoblagich (offline)`r`nExecuteFile=calculator_offline.exe`r`n;!@InstallEnd@!`r`n"
+          [System.IO.File]::WriteAllText($cfg, $text, $utf8BOM)
+
+          $portable = Join-Path $outDir "hisoblagich-offline-portable.exe"
+          $fs = [System.IO.File]::Create($portable)
+          try {
+            foreach ($p in @($sfx.FullName, $cfg, $bundle)) {
+              $b = [System.IO.File]::ReadAllBytes($p)
+              $fs.Write($b, 0, $b.Length)
+            }
+          } finally { $fs.Close() }
+
+          Remove-Item $bundle -Force -ErrorAction SilentlyContinue
+          Remove-Item $cfg -Force -ErrorAction SilentlyContinue
+
+          Get-Item $portable | Select-Object FullName, Length
+
+      - name: Upload distributables (o'rnatuvchi + bitta SFX portable)
         uses: actions/upload-artifact@v4
         with:
-          name: hisoblagich-offline-setup-${{ github.run_number }}-${{ github.sha }}
-          path: mobile_offline/build/installer_out/hisoblagich-offline-setup.exe
+          name: hisoblagich-offline-windows-${{ github.run_number }}-${{ github.sha }}
+          path: |
+            mobile_offline/build/installer_out/hisoblagich-offline-setup.exe
+            mobile_offline/build/sfx_out/hisoblagich-offline-portable.exe
           if-no-files-found: error
