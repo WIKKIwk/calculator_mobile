@@ -1,0 +1,52 @@
+# Windows .exe (Release) — macOS/iOS / .ipa talab qilinmaydi.
+name: mobile_offline Windows
+
+on:
+  push:
+    paths:
+      - 'mobile_offline/**'
+      - '.github/workflows/build-mobile-offline-windows.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: mobile-offline-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-release:
+    runs-on: windows-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: pub get
+        working-directory: mobile_offline
+        run: flutter pub get
+
+      - name: Build Windows (Release)
+        working-directory: mobile_offline
+        run: flutter build windows --release
+
+      - name: List Release output
+        shell: pwsh
+        run: |
+          $r = "mobile_offline/build/windows/x64/runner/Release"
+          Get-ChildItem -Recurse $r | Select-Object FullName, Length
+
+      - name: Upload artifact (exe + DLLs)
+        uses: actions/upload-artifact@v4
+        with:
+          name: hisoblagich-offline-windows-${{ github.run_number }}-${{ github.sha }}
+          path: mobile_offline/build/windows/x64/runner/Release/
+          if-no-files-found: error
