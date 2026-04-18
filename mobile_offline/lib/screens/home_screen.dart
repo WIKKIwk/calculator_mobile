@@ -5,7 +5,6 @@ import '../services/app_local_store.dart';
 import '../services/offline_entity_store.dart';
 import '../widgets/product_card.dart';
 import '../widgets/add_product_sheet.dart';
-import 'activity_log_screen.dart';
 import 'backup_security_screen.dart';
 import 'users_screen.dart';
 import 'user_calculation_screen.dart';
@@ -60,43 +59,24 @@ class _HomeScreenState extends State<HomeScreen> {
         label: const Text('Qo\'shish'),
         elevation: 4,
       );
+    } else if (_currentIndex == 3) {
+      fab = FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => const BackupSecurityScreen(),
+            ),
+          );
+        },
+        icon: const Icon(Icons.enhanced_encryption_outlined),
+        label: const Text('Zaxira va xavfsizlik'),
+        elevation: 4,
+      );
     }
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: _currentIndex == 2
-          ? null
-          : _currentIndex == 3
-              ? AppBar(
-                  toolbarHeight: 48,
-                  backgroundColor: colorScheme.surfaceContainer,
-                  title: const SizedBox.shrink(),
-                  actions: [
-                    IconButton(
-                      tooltip: 'Zaxira va xavfsizlik',
-                      icon: const Icon(Icons.enhanced_encryption_outlined),
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => const BackupSecurityScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    IconButton(
-                      tooltip: 'Faoliyat jurnali',
-                      icon: const Icon(Icons.analytics_outlined),
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => const ActivityLogScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                )
-              : null,
+      appBar: null,
       floatingActionButton: fab,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: useSideNav
