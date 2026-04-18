@@ -1,4 +1,4 @@
-# Windows .exe (Release) — macOS/iOS / .ipa talab qilinmaydi.
+# Windows: flutter build + Inno Setup — artifact bitta o'rnatuvchi .exe (hamma DLL/data ichida).
 name: mobile_offline Windows
 
 on:
@@ -38,15 +38,27 @@ jobs:
         working-directory: mobile_offline
         run: flutter build windows --release
 
-      - name: List Release output
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Build single-file installer (.exe)
         shell: pwsh
         run: |
-          $r = "mobile_offline/build/windows/x64/runner/Release"
-          Get-ChildItem -Recurse $r | Select-Object FullName, Length
+          $candidates = @(
+            (Join-Path $env:ProgramFiles "Inno Setup 6\ISCC.exe"),
+            (Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe")
+          )
+          $iscc = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $iscc) { throw "ISCC.exe topilmadi (Inno Setup o'rnatilmagan)." }
+          Write-Host "Using $iscc"
+          $iss = Join-Path $env:GITHUB_WORKSPACE "mobile_offline\windows\installer\hisoblagich_offline.iss"
+          & $iscc $iss
+          $out = Join-Path $env:GITHUB_WORKSPACE "mobile_offline\build\installer_out"
+          Get-ChildItem -Recurse $out | Select-Object FullName, Length
 
-      - name: Upload artifact (exe + DLLs)
+      - name: Upload installer (bitta fayl)
         uses: actions/upload-artifact@v4
         with:
-          name: hisoblagich-offline-windows-${{ github.run_number }}-${{ github.sha }}
-          path: mobile_offline/build/windows/x64/runner/Release/
+          name: hisoblagich-offline-setup-${{ github.run_number }}-${{ github.sha }}
+          path: mobile_offline/build/installer_out/hisoblagich-offline-setup.exe
           if-no-files-found: error
