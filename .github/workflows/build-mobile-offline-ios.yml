@@ -1,8 +1,8 @@
-# mobile_offline: faqat iOS (Apple imzosiz).
-# `flutter build ipa --no-codesign` IPA emas — Runner.xcarchive yaratadi.
-# Artifact: zip ichida xcarchive — Xcodeda ochib yoki keyin imzolash uchun.
+# .ipa fayl (Payload/Runner.app) — GitHub Secrets / Apple sertifikati SHART EMAS.
+# Qurilmaga o'rnatish uchun keyin o'zingiz imzolashingiz kerak bo'lishi mumkin
+# (Apple qoidalari shunday); lekin CI faqat .ipa konteynerini yig'adi.
 
-name: mobile_offline iOS (imzosiz archive)
+name: mobile_offline iOS IPA (sertifikatsiz)
 
 on:
   push:
@@ -12,11 +12,11 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: mobile-offline-ios-${{ github.ref }}
+  group: mobile-offline-ios-ipa-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  ios-unsigned-archive:
+  ios-ipa-payload:
     runs-on: macos-latest
     timeout-minutes: 60
 
@@ -34,29 +34,34 @@ jobs:
         working-directory: mobile_offline
         run: flutter pub get
 
-      # Imzosiz: IPA eksport qilinmaydi, faqat .xcarchive hosil bo'ladi.
-      - name: Build (ipa --no-codesign → xcarchive)
+      - name: iOS release (imzo talab qilmaydi)
         working-directory: mobile_offline
-        run: flutter build ipa --no-codesign
+        run: flutter build ios --release --no-codesign
 
-      - name: xcarchive ni zip qilish
+      - name: .ipa (Payload tuzilishi)
         run: |
           set -euo pipefail
-          mkdir -p upload-ios
-          SHORT="${GITHUB_SHA:0:7}"
-          ARCH="$(find "${{ github.workspace }}/mobile_offline/build/ios" -type d -name "*.xcarchive" 2>/dev/null | head -1 || true)"
-          if [[ -z "$ARCH" ]]; then
-            echo "xcarchive topilmadi. build/ios:"
-            ls -laR "${{ github.workspace }}/mobile_offline/build/ios" || true
+          APP="$(find "${{ github.workspace }}/mobile_offline/build/ios" -type d -name 'Runner.app' | head -1)"
+          if [[ -z "$APP" ]]; then
+            echo "Runner.app topilmadi:"
+            find "${{ github.workspace }}/mobile_offline/build/ios" -type d -maxdepth 5 2>/dev/null || true
             exit 1
           fi
-          echo "Topildi: $ARCH"
-          (cd "$(dirname "$ARCH")" && zip -rq "${{ github.workspace }}/upload-ios/hisoblagich-offline-ios-unsigned-${SHORT}.zip" "$(basename "$ARCH")")
-          ls -lh "${{ github.workspace }}/upload-ios/"
+          echo "App: $APP"
+          WORK="${{ github.workspace }}/mobile_offline/build/ios/ipa-staging"
+          rm -rf "$WORK"
+          mkdir -p "$WORK/Payload"
+          cp -R "$APP" "$WORK/Payload/"
+          mkdir -p "${{ github.workspace }}/upload-ipa"
+          SHORT="${GITHUB_SHA:0:7}"
+          OUT="${{ github.workspace }}/upload-ipa/hisoblagich-offline-${SHORT}.ipa"
+          (cd "$WORK" && zip -rq "$OUT" Payload)
+          ls -lh "$OUT"
+          unzip -l "$OUT" | head -20
 
-      - name: Artifact (zip ichida xcarchive)
+      - name: Artifact (.ipa)
         uses: actions/upload-artifact@v4
         with:
-          name: hisoblagich-offline-ios-unsigned-${{ github.sha }}
-          path: upload-ios/*.zip
+          name: hisoblagich-offline-ipa-${{ github.sha }}
+          path: upload-ipa/*.ipa
           if-no-files-found: error
