@@ -246,8 +246,9 @@ class _AddEditUserSheetState extends State<_AddEditUserSheet> {
     super.dispose();
   }
 
-  Future<void> _submit(BuildContext context) async {
+  Future<void> _submit(BuildContext context, {bool addAnother = false}) async {
     if (!_formKey.currentState!.validate()) return;
+    if (widget.user != null && addAnother) return;
 
     setState(() => _isLoading = true);
     final client = GraphQLProvider.of(context).value;
@@ -288,9 +289,20 @@ class _AddEditUserSheetState extends State<_AddEditUserSheet> {
           label,
         );
         if (!context.mounted) return;
+        if (!isEdit && addAnother) {
+          _firstController.clear();
+          _lastController.clear();
+          _formKey.currentState?.reset();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Qo\'shildi — keyingisini kiriting')),
+          );
+          return;
+        }
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(isEdit ? 'Ishchi yangilandi' : 'Yangi ishchi qo\'shildi')),
+          SnackBar(
+            content: Text(isEdit ? 'Ishchi yangilandi' : 'Yangi ishchi qo\'shildi'),
+          ),
         );
       }
     }
@@ -345,18 +357,60 @@ class _AddEditUserSheetState extends State<_AddEditUserSheet> {
               textCapitalization: TextCapitalization.words,
             ),
             const SizedBox(height: 32),
-            FilledButton.icon(
-              onPressed: _isLoading ? null : () => _submit(context),
-              icon: _isLoading 
-                ? Container(width: 20, height: 20, padding: const EdgeInsets.all(2), child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Icon(Icons.save),
-              label: Text(widget.user != null ? 'Saqlash' : 'Qo\'shish'),
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            if (widget.user != null)
+              FilledButton.icon(
+                onPressed: _isLoading ? null : () => _submit(context),
+                icon: _isLoading
+                    ? Container(
+                        width: 20,
+                        height: 20,
+                        padding: const EdgeInsets.all(2),
+                        child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(Icons.save),
+                label: const Text('Saqlash'),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _isLoading ? null : () => _submit(context, addAnother: true),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Yana qo\'shish'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: _isLoading ? null : () => _submit(context, addAnother: false),
+                      icon: _isLoading
+                          ? Container(
+                              width: 20,
+                              height: 20,
+                              padding: const EdgeInsets.all(2),
+                              child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : const Icon(Icons.person_add),
+                      label: const Text('Qo\'shish'),
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
           ],
         ),
       ),

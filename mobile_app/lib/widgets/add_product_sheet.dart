@@ -18,6 +18,7 @@ class _AddProductSheetState extends State<AddProductSheet> {
   final _nameController = TextEditingController();
   final _priceController = TextEditingController();
   bool _isLoading = false;
+  bool _pendingAddAnother = false;
 
   @override
   void dispose() {
@@ -26,10 +27,13 @@ class _AddProductSheetState extends State<AddProductSheet> {
     super.dispose();
   }
 
-  Future<void> _submit(RunMutation runMutation) async {
+  Future<void> _submit(RunMutation runMutation, {required bool addAnother}) async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _pendingAddAnother = addAnother;
+    });
 
     final name = _nameController.text.trim();
     final price = double.tryParse(
@@ -56,18 +60,25 @@ class _AddProductSheetState extends State<AddProductSheet> {
                 : _nameController.text.trim();
             final messenger = ScaffoldMessenger.of(context);
             final nav = Navigator.of(context);
+            final addAnother = _pendingAddAnother;
             await AppLocalStore.logEvent('mahsulot_qoshildi', name);
             if (!mounted) return;
-            setState(() => _isLoading = false);
+            setState(() {
+              _isLoading = false;
+              _pendingAddAnother = false;
+            });
             widget.onProductAdded();
-            nav.pop();
             messenger.showSnackBar(
               SnackBar(
-                content: const Row(
+                content: Row(
                   children: [
-                    Icon(Icons.check_circle_outline, color: Colors.white),
-                    SizedBox(width: 8),
-                    Text('Mahsulot qo\'shildi!'),
+                    const Icon(Icons.check_circle_outline, color: Colors.white),
+                    const SizedBox(width: 8),
+                    Text(
+                      addAnother
+                          ? 'Qo\'shildi — keyingisini kiriting'
+                          : 'Mahsulot qo\'shildi!',
+                    ),
                   ],
                 ),
                 backgroundColor: colorScheme.primary,
@@ -77,10 +88,20 @@ class _AddProductSheetState extends State<AddProductSheet> {
                 ),
               ),
             );
+            if (addAnother) {
+              _nameController.clear();
+              _priceController.clear();
+              _formKey.currentState?.reset();
+            } else {
+              nav.pop();
+            }
           }
         },
         onError: (error) {
-          setState(() => _isLoading = false);
+          setState(() {
+            _isLoading = false;
+            _pendingAddAnother = false;
+          });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Xato: ${error?.graphqlErrors.first.message}'),
@@ -186,27 +207,50 @@ class _AddProductSheetState extends State<AddProductSheet> {
                 ),
                 const SizedBox(height: 28),
 
-                // Qo'shish tugmasi
-                FilledButton.icon(
-                  onPressed: _isLoading ? null : () => _submit(runMutation),
-                  icon: _isLoading
-                      ? SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: colorScheme.onPrimary,
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _isLoading
+                            ? null
+                            : () => _submit(runMutation, addAnother: true),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          textStyle: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
                           ),
-                        )
-                      : const Icon(Icons.add),
-                  label: Text(_isLoading ? 'Saqlanmoqda...' : 'Qo\'shish'),
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                        ),
+                        child: const Text('Yana qo\'shish'),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: _isLoading
+                            ? null
+                            : () => _submit(runMutation, addAnother: false),
+                        icon: _isLoading
+                            ? SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: colorScheme.onPrimary,
+                                ),
+                              )
+                            : const Icon(Icons.add),
+                        label: Text(_isLoading ? 'Saqlanmoqda...' : 'Qo\'shish'),
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          textStyle: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

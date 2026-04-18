@@ -5,6 +5,7 @@ import '../models/product.dart';
 import '../models/record.dart';
 import '../models/user.dart';
 import '../services/app_local_store.dart';
+import '../services/records_excel_export.dart';
 import '../widgets/offline_hint_banner.dart';
 
 class RecordsScreen extends StatefulWidget {
@@ -148,9 +149,20 @@ class _RecordsScreenState extends State<RecordsScreen> {
             else _refresh();
           },
           child: ListView(
-            padding: const EdgeInsets.only(top: 8, bottom: 80),
+            padding: const EdgeInsets.only(bottom: 80),
             children: [
               if (result.hasException && cached) const OfflineHintBanner(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: FilledButton.tonalIcon(
+                    onPressed: () => exportRecordsToExcelFile(context, records),
+                    icon: const Icon(Icons.table_chart_outlined),
+                    label: const Text('Excelga saqlash'),
+                  ),
+                ),
+              ),
               ...usersList.asMap().entries.map((entry) {
                 final index = entry.key;
                 final uid = entry.value;
@@ -159,72 +171,92 @@ class _RecordsScreenState extends State<RecordsScreen> {
 
                 final totalSum = userRecords.fold(0.0, (sum, r) => sum + (r.quantity * r.product.price));
 
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
-                  ),
-                  clipBehavior: Clip.antiAlias, // ExpansionTile fonlari toshib ketmasligi uchun
-                  child: ExpansionTile(
-                    initiallyExpanded: index == 0, // Dastlabkisiga ochiq bo'lsin
-                  shape: const Border(),
-                  backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                  leading: CircleAvatar(
-                    backgroundColor: colorScheme.primaryContainer,
-                    foregroundColor: colorScheme.onPrimaryContainer,
-                    child: Text(u.firstName.isNotEmpty ? u.firstName[0].toUpperCase() : 'I'),
-                  ),
-                  title: Text(u.displayName, style: const TextStyle(fontWeight: FontWeight.w600)),
-                  subtitle: Text('Jami hisob: ${formatNum(totalSum)} so\'m', 
-                    style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.w600, fontSize: 13)
-                  ),
-                    children: userRecords.map((rec) {
-                      final p = rec.product;
-                      final priceStr = formatNum(rec.quantity * p.price);
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (index > 0)
+                      Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+                      ),
+                    ExpansionTile(
+                      initiallyExpanded: index == 0,
+                      tilePadding: const EdgeInsets.symmetric(horizontal: 8),
+                      shape: const Border(),
+                      collapsedShape: const Border(),
+                      backgroundColor: colorScheme.surface,
+                      collapsedBackgroundColor: colorScheme.surface,
+                      leading: CircleAvatar(
+                        backgroundColor: colorScheme.primaryContainer,
+                        foregroundColor: colorScheme.onPrimaryContainer,
+                        child: Text(u.firstName.isNotEmpty ? u.firstName[0].toUpperCase() : 'I'),
+                      ),
+                      title: Text(u.displayName, style: const TextStyle(fontWeight: FontWeight.w600)),
+                      subtitle: Text(
+                        'Jami hisob: ${formatNum(totalSum)} so\'m',
+                        style: TextStyle(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                      children: userRecords.map((rec) {
+                        final p = rec.product;
+                        final priceStr = formatNum(rec.quantity * p.price);
 
-                      return Column(
-                        children: [
-                          Divider(height: 1, color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
-                          ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 2),
-                            title: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w500)),
-                                      ),
-                                      if (rec.isLocalPending)
-                                        Padding(
-                                          padding: const EdgeInsets.only(left: 6),
-                                          child: Text(
-                                            'Kutilmoqda',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w600,
-                                              color: colorScheme.tertiary,
+                        return Column(
+                          children: [
+                            Divider(
+                              height: 1,
+                              color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+                            ),
+                            ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                              title: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w500)),
+                                        ),
+                                        if (rec.isLocalPending)
+                                          Padding(
+                                            padding: const EdgeInsets.only(left: 6),
+                                            child: Text(
+                                              'Kutilmoqda',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
+                                                color: colorScheme.tertiary,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
+                                  Text(
+                                    '$priceStr so\'m',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                  ),
+                                ],
+                              ),
+                              subtitle: Text(
+                                '${_formatPrice(rec.quantity)} ta/kg x ${formatNum(p.price)} \nVaqt: ${_formatDate(rec.createdAt)}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: colorScheme.onSurfaceVariant,
+                                  height: 1.5,
                                 ),
-                                Text('$priceStr so\'m', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                              ],
+                              ),
                             ),
-                            subtitle: Text(
-                              '${_formatPrice(rec.quantity)} ta/kg x ${formatNum(p.price)} \nVaqt: ${_formatDate(rec.createdAt)}',
-                              style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant, height: 1.5),
-                            ),
-                          ),
-                        ],
-                      );
-                    }).toList(),
-                  ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ],
                 );
               }),
             ],

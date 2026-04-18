@@ -25,7 +25,7 @@ class _AddProductSheetState extends State<AddProductSheet> {
     super.dispose();
   }
 
-  Future<void> _submit() async {
+  Future<void> _submit({required bool addAnother}) async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
@@ -44,14 +44,17 @@ class _AddProductSheetState extends State<AddProductSheet> {
       final nav = Navigator.of(context);
       setState(() => _isLoading = false);
       widget.onProductAdded();
-      nav.pop();
       messenger.showSnackBar(
         SnackBar(
-          content: const Row(
+          content: Row(
             children: [
-              Icon(Icons.check_circle_outline, color: Colors.white),
-              SizedBox(width: 8),
-              Text('Mahsulot qo\'shildi!'),
+              const Icon(Icons.check_circle_outline, color: Colors.white),
+              const SizedBox(width: 8),
+              Text(
+                addAnother
+                    ? 'Qo\'shildi — keyingisini kiriting'
+                    : 'Mahsulot qo\'shildi!',
+              ),
             ],
           ),
           backgroundColor: colorScheme.primary,
@@ -61,6 +64,13 @@ class _AddProductSheetState extends State<AddProductSheet> {
           ),
         ),
       );
+      if (addAnother) {
+        _nameController.clear();
+        _priceController.clear();
+        _formKey.currentState?.reset();
+      } else {
+        nav.pop();
+      }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -163,26 +173,50 @@ class _AddProductSheetState extends State<AddProductSheet> {
               },
             ),
             const SizedBox(height: 28),
-            FilledButton.icon(
-              onPressed: _isLoading ? null : _submit,
-              icon: _isLoading
-                  ? SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: colorScheme.onPrimary,
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _isLoading
+                        ? null
+                        : () => _submit(addAnother: true),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      textStyle: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
                       ),
-                    )
-                  : const Icon(Icons.add),
-              label: Text(_isLoading ? 'Saqlanmoqda...' : 'Qo\'shish'),
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                textStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                    ),
+                    child: const Text('Yana qo\'shish'),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: _isLoading
+                        ? null
+                        : () => _submit(addAnother: false),
+                    icon: _isLoading
+                        ? SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: colorScheme.onPrimary,
+                            ),
+                          )
+                        : const Icon(Icons.add),
+                    label: Text(_isLoading ? 'Saqlanmoqda...' : 'Qo\'shish'),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      textStyle: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
