@@ -1,0 +1,102 @@
+# mobile_offline: pushdan keyin Android APK + iOS imzosiz IPA (test).
+# Artifacts: GitHub → Actions → so'nggi run → Artifacts.
+
+name: mobile_offline APK / IPA
+
+on:
+  push:
+    paths:
+      - 'mobile_offline/**'
+      - '.github/workflows/build-mobile-offline-apk.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: mobile-offline-builds-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: pub get
+        working-directory: mobile_offline
+        run: flutter pub get
+
+      - name: Build release APK
+        working-directory: mobile_offline
+        run: flutter build apk --release
+
+      - name: Tayyor fayl nomi (APK)
+        run: |
+          mkdir -p upload-apk
+          SHORT="${GITHUB_SHA:0:7}"
+          cp mobile_offline/build/app/outputs/flutter-apk/app-release.apk \
+            "upload-apk/hisoblagich-offline-${SHORT}.apk"
+
+      - name: Artifact APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: hisoblagich-offline-apk-${{ github.sha }}
+          path: upload-apk/*.apk
+          if-no-files-found: error
+
+  ios-unsigned-ipa:
+    runs-on: macos-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: pub get
+        working-directory: mobile_offline
+        run: flutter pub get
+
+      - name: Build unsigned IPA
+        working-directory: mobile_offline
+        run: flutter build ipa --no-codesign
+
+      - name: Tayyor fayl nomi (IPA)
+        run: |
+          mkdir -p upload-ipa
+          SHORT="${GITHUB_SHA:0:7}"
+          shopt -s nullglob
+          files=(mobile_offline/build/ios/ipa/*.ipa)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "IPA topilmadi. build/ios/ipa tarkibi:"
+            ls -laR mobile_offline/build/ios/ipa || true
+            exit 1
+          fi
+          cp "${files[0]}" "upload-ipa/hisoblagich-offline-unsigned-${SHORT}.ipa"
+          ls -la upload-ipa/
+
+      - name: Artifact IPA (imzosiz)
+        uses: actions/upload-artifact@v4
+        with:
+          name: hisoblagich-offline-ipa-unsigned-${{ github.sha }}
+          path: upload-ipa/*.ipa
+          if-no-files-found: error
