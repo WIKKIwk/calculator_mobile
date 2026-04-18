@@ -36,103 +36,127 @@ class _UserCalculationScreenState extends State<UserCalculationScreen> {
       controllers[p.id] = TextEditingController(text: text);
     }
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (_) {
-        final colorScheme = Theme.of(context).colorScheme;
-        final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+      builder: (sheetContext) {
+        final colorScheme = Theme.of(sheetContext).colorScheme;
+        final viewInsets = MediaQuery.viewInsetsOf(sheetContext);
+        final screenH = MediaQuery.sizeOf(sheetContext).height;
+        final listMaxH = (screenH * 0.5).clamp(120.0, 560.0);
 
-        return Container(
-          padding: EdgeInsets.fromLTRB(24, 12, 24, 24 + bottomPadding),
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 40, height: 4, margin: const EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(color: colorScheme.outlineVariant, borderRadius: BorderRadius.circular(2)),
+        return AnimatedPadding(
+          padding: EdgeInsets.only(bottom: viewInsets.bottom),
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.easeOut,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      color: colorScheme.outlineVariant,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
                 ),
-              ),
-              Text(
-                'Miqdorlarni kiriting',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              Flexible(
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: selectedProducts.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 16),
-                  itemBuilder: (_, i) {
-                    final p = selectedProducts[i];
-                    return Row(
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: Text(
-                            p.name,
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: colorScheme.onSurface),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: TextFormField(
-                            controller: controllers[p.id],
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            textAlign: TextAlign.end,
-                            decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              hintText: '0',
-                              filled: true,
-                              fillColor: colorScheme.surfaceContainerHighest,
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                Text(
+                  'Miqdorlarni kiriting',
+                  style: Theme.of(sheetContext).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: listMaxH),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: selectedProducts.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 16),
+                    itemBuilder: (_, i) {
+                      final p = selectedProducts[i];
+                      return Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: Text(
+                              p.name,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: colorScheme.onSurface,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                        ),
-                      ],
-                    );
-                  },
+                          Expanded(
+                            flex: 2,
+                            child: TextFormField(
+                              controller: controllers[p.id],
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              textAlign: TextAlign.end,
+                              decoration: InputDecoration(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                hintText: '0',
+                                filled: true,
+                                fillColor: colorScheme.surfaceContainerHighest,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              FilledButton.icon(
-                onPressed: () {
-                  setState(() {
-                    for (var p in selectedProducts) {
-                      final val = double.tryParse(controllers[p.id]?.text.replaceAll(',', '.') ?? '') ?? 0.0;
-                      if (val > 0) {
-                        _productQuantities[p.id] = val;
-                      } else {
-                        _productQuantities.remove(p.id);
+                const SizedBox(height: 24),
+                FilledButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      for (var p in selectedProducts) {
+                        final val = double.tryParse(controllers[p.id]?.text.replaceAll(',', '.') ?? '') ?? 0.0;
+                        if (val > 0) {
+                          _productQuantities[p.id] = val;
+                        } else {
+                          _productQuantities.remove(p.id);
+                        }
                       }
-                    }
-                    _selectedProductIds.clear(); // Tayyor qilingach yashirish
-                  });
-                  Navigator.of(context).pop();
-                },
-                icon: const Icon(Icons.calculate),
-                label: const Text('Hisoblash'),
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      _selectedProductIds.clear();
+                    });
+                    Navigator.of(sheetContext).pop();
+                  },
+                  icon: const Icon(Icons.calculate),
+                  label: const Text('Hisoblash'),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
-    );
+    ).whenComplete(() {
+      for (final c in controllers.values) {
+        c.dispose();
+      }
+    });
   }
 
   Future<void> _submitCalculation() async {
@@ -306,14 +330,6 @@ class _UserCalculationScreenState extends State<UserCalculationScreen> {
             }
             return sum;
           });
-
-          // Update FAB action safely with products
-          if (_selectedProductIds.isNotEmpty && _productQuantities.isEmpty) {
-             WidgetsBinding.instance.addPostFrameCallback((_) {
-               // Instead of updating state in build, we build a builder for FAB?
-               // The safest is handling fab tap inside the list, or we just map it.
-             });
-          }
 
           return ListView(
             padding: const EdgeInsets.only(bottom: 100),
