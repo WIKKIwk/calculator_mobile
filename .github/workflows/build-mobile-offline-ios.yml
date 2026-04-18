@@ -1,0 +1,62 @@
+# mobile_offline: faqat iOS (Apple imzosiz).
+# `flutter build ipa --no-codesign` IPA emas — Runner.xcarchive yaratadi.
+# Artifact: zip ichida xcarchive — Xcodeda ochib yoki keyin imzolash uchun.
+
+name: mobile_offline iOS (imzosiz archive)
+
+on:
+  push:
+    paths:
+      - 'mobile_offline/**'
+      - '.github/workflows/build-mobile-offline-ios.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: mobile-offline-ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios-unsigned-archive:
+    runs-on: macos-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: pub get
+        working-directory: mobile_offline
+        run: flutter pub get
+
+      # Imzosiz: IPA eksport qilinmaydi, faqat .xcarchive hosil bo'ladi.
+      - name: Build (ipa --no-codesign → xcarchive)
+        working-directory: mobile_offline
+        run: flutter build ipa --no-codesign
+
+      - name: xcarchive ni zip qilish
+        run: |
+          set -euo pipefail
+          mkdir -p upload-ios
+          SHORT="${GITHUB_SHA:0:7}"
+          ARCH="$(find "${{ github.workspace }}/mobile_offline/build/ios" -type d -name "*.xcarchive" 2>/dev/null | head -1 || true)"
+          if [[ -z "$ARCH" ]]; then
+            echo "xcarchive topilmadi. build/ios:"
+            ls -laR "${{ github.workspace }}/mobile_offline/build/ios" || true
+            exit 1
+          fi
+          echo "Topildi: $ARCH"
+          (cd "$(dirname "$ARCH")" && zip -rq "${{ github.workspace }}/upload-ios/hisoblagich-offline-ios-unsigned-${SHORT}.zip" "$(basename "$ARCH")")
+          ls -lh "${{ github.workspace }}/upload-ios/"
+
+      - name: Artifact (zip ichida xcarchive)
+        uses: actions/upload-artifact@v4
+        with:
+          name: hisoblagich-offline-ios-unsigned-${{ github.sha }}
+          path: upload-ios/*.zip
+          if-no-files-found: error
