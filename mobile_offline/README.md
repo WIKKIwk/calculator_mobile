@@ -1,17 +1,20 @@
-# calculator_app
+# calculator_offline — Hisoblagich (oflayn)
 
-A new Flutter project.
+**Tavsif:** mahsulot hisobi uchun Flutter-ilova; **server va tashqi ma’lumotlar bazasini talab qilmaydi**. Ma’lumotlar qurilmada Hive orqali saqlanadi.
 
-## Getting Started
+**Asosiy repozitoriy:** [README.md](../README.md) — loyiha annotatsiyasi, arxitektura, CI/CD va ishga tushirish.
 
-This project is a starting point for a Flutter application.
+## Tezkor boshlash
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+flutter pub get
+flutter run
+```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Platformalar
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Android, iOS, Linux, Windows, Web (loyiha qo‘llab-quvvatlaydigan `flutter create` platformalariga muvofiq).
+
+## CI
+
+GitHub Actions: iOS (imzosiz `.ipa`) va Windows (bitta SFX `.exe`) — batafsil asosiy READMEda.
