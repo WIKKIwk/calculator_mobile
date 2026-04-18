@@ -132,7 +132,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           ),
         ),
       ),
-      floatingActionButton: useSideNav ? null : fab,
+      floatingActionButton: fab,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: useSideNav
           ? null
           : NavigationBar(
@@ -173,12 +174,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   backgroundColor: colorScheme.surfaceContainer,
                   indicatorColor: colorScheme.secondaryContainer,
                   leading: const SizedBox(height: 8),
-                  trailing: fab != null
-                      ? Padding(
-                          padding: const EdgeInsets.only(top: 16),
-                          child: fab,
-                        )
-                      : null,
                   destinations: const [
                     NavigationRailDestination(
                       icon: Icon(Icons.calculate_outlined),
