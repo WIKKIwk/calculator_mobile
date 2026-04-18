@@ -63,10 +63,7 @@ class _UsersScreenState extends State<UsersScreen> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        title: const Text('Ishchilar'),
-        backgroundColor: colorScheme.surfaceContainer,
-      ),
+      appBar: null,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openAddOrEditUserSheet(context),
         icon: const Icon(Icons.person_add),
@@ -135,7 +132,7 @@ class _UsersScreenState extends State<UsersScreen> {
               }
             },
             child: ListView.builder(
-              padding: const EdgeInsets.only(bottom: 80, top: 8),
+              padding: const EdgeInsets.only(bottom: 80),
               itemCount: users.length + (result.hasException && cached ? 1 : 0),
               itemBuilder: (context, index) {
                 if (result.hasException && cached && index == 0) {
@@ -143,69 +140,71 @@ class _UsersScreenState extends State<UsersScreen> {
                 }
                 final ui = (result.hasException && cached) ? index - 1 : index;
                 final user = users[ui];
-                return Dismissible(
-                  key: Key(user.id),
-                  direction: DismissDirection.endToStart,
-                  background: Container(
-                    padding: const EdgeInsets.only(right: 20),
-                    alignment: Alignment.centerRight,
-                    color: colorScheme.error,
-                    child: Icon(Icons.delete, color: colorScheme.onError),
-                  ),
-                  confirmDismiss: (direction) async {
-                    return await showDialog<bool>(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: const Text('O\'chirishni tasdiqlang'),
-                        content: Text('${user.displayName} ni rostdan ham o\'chirmoqchimisiz?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(ctx, false),
-                            child: const Text('Bekor qilish'),
-                          ),
-                          FilledButton(
-                            onPressed: () => Navigator.pop(ctx, true),
-                            style: FilledButton.styleFrom(backgroundColor: colorScheme.error),
-                            child: const Text('O\'chirish'),
-                          ),
-                        ],
+                final divColor = colorScheme.outlineVariant.withValues(alpha: 0.35);
+                final hasBanner = result.hasException && cached;
+                final showDividerBefore = hasBanner ? index > 1 : index > 0;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (showDividerBefore) Divider(height: 1, thickness: 1, color: divColor),
+                    Dismissible(
+                      key: Key(user.id),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        padding: const EdgeInsets.only(right: 20),
+                        alignment: Alignment.centerRight,
+                        color: colorScheme.error,
+                        child: Icon(Icons.delete, color: colorScheme.onError),
                       ),
-                    );
-                  },
-                  onDismissed: (direction) {
-                    _deleteUser(context, user.id);
-                  },
-                  child: Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
-                    ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      leading: CircleAvatar(
-                        backgroundColor: colorScheme.primaryContainer,
-                        foregroundColor: colorScheme.onPrimaryContainer,
-                        child: Text(
-                          user.firstName.isNotEmpty ? user.firstName[0].toUpperCase() : '?',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                      confirmDismiss: (direction) async {
+                        return await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('O\'chirishni tasdiqlang'),
+                            content: Text('${user.displayName} ni rostdan ham o\'chirmoqchimisiz?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                child: const Text('Bekor qilish'),
+                              ),
+                              FilledButton(
+                                onPressed: () => Navigator.pop(ctx, true),
+                                style: FilledButton.styleFrom(backgroundColor: colorScheme.error),
+                                child: const Text('O\'chirish'),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      onDismissed: (direction) {
+                        _deleteUser(context, user.id);
+                      },
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        leading: CircleAvatar(
+                          backgroundColor: colorScheme.primaryContainer,
+                          foregroundColor: colorScheme.onPrimaryContainer,
+                          child: Text(
+                            user.firstName.isNotEmpty ? user.firstName[0].toUpperCase() : '?',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        title: Text(
+                          user.displayName,
+                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                        ),
+                        subtitle: Text(
+                          'Qo\'shilgan: ${user.createdAt.substring(0, 10)}',
+                          style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13),
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.edit_outlined),
+                          onPressed: () => _openAddOrEditUserSheet(context, user: user),
                         ),
                       ),
-                      title: Text(
-                        user.displayName,
-                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-                      ),
-                      subtitle: Text(
-                        'Qo\'shilgan: ${user.createdAt.substring(0, 10)}',
-                        style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13),
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.edit_outlined),
-                        onPressed: () => _openAddOrEditUserSheet(context, user: user),
-                      ),
                     ),
-                  ),
+                  ],
                 );
               },
             ),
