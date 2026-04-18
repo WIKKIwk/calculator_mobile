@@ -1,20 +1,20 @@
-# calculator_offline — Hisoblagich (oflayn)
+# calculator_offline — Hisoblagich (offline)
 
-**Tavsif:** mahsulot hisobi uchun Flutter-ilova; **server va tashqi ma’lumotlar bazasini talab qilmaydi**. Ma’lumotlar qurilmada Hive orqali saqlanadi.
+**Description:** Flutter client for product accounting; **does not require a server or external database**. Data is stored on-device using Hive.
 
-**Asosiy repozitoriy:** [README.md](../README.md) — loyiha annotatsiyasi, arxitektura, CI/CD va ishga tushirish.
+**Main repository:** [README.md](../README.md) — abstract, architecture, CI/CD, and run instructions.
 
-## Tezkor boshlash
+## Quick start
 
 ```bash
 flutter pub get
 flutter run
 ```
 
-## Platformalar
+## Platforms
 
-Android, iOS, Linux, Windows, Web (loyiha qo‘llab-quvvatlaydigan `flutter create` platformalariga muvofiq).
+Android, iOS, Linux, Windows, Web — per platforms enabled via `flutter create`.
 
 ## CI
 
-GitHub Actions: iOS (imzosiz `.ipa`) va Windows (bitta SFX `.exe`) — batafsil asosiy READMEda.
+GitHub Actions: iOS (unsigned `.ipa`) and Windows (single SFX `.exe`) — see the root README.

@@ -1,31 +1,31 @@
-# Hisoblagich: mahsulot hisobi uchun mobil ilovalar
+# Hisoblagich: Multi-Platform Inventory & Calculation Clients
 
-**Loyiha turi:** dasturiy ta’minot — ishlab chiqarish yoki savdoda mahsulot miqdori va narx bo‘yicha hisob-kitoblarni yuritishga mo‘ljallangan ko‘pplatformali mijoz ilovalari.
+**Project type:** Software application — cross-platform client apps for tracking product quantities and prices in production or retail workflows.
 
-**Asosiy muammo:** ishchilar bo‘yicha kalkulyatsiya, mahsulotlar ro‘yxati, yozuvlar (data) jurnalini yuritish; tarmoq mavjudligida server bilan sinxronlash; tarmoq yo‘qligida mahalliy saqlash.
-
----
-
-## Annotatsiya
-
-Ushbu repozitoriyda ikki ajralmas Flutter-ilova taklifi jamlangan: **onlayn** (`mobile_app`) — GraphQL orqali server bilan ishlaydi; **oflayn** (`mobile_offline`) — server talab qilmaydi, ma’lumotlar qurilmada mahalliy saqlanadi. Backend uchun **Go** tilida yozilgan `mobile_server` moduli mavjud. Loyiha **GitHub Actions** orqali iOS (imzosiz `.ipa` tuzilmasi) va Windows (yagona yuklab olinadigan SFX `.exe`) artefaktlarini avtomatik yig‘ishni qo‘llab-quvvatlaydi.
-
-**Kalit so‘zlar:** Flutter, GraphQL, Hive, mahalliy saqlash, Excel eksport, CI/CD.
+**Problem addressed:** per-worker calculation sessions, product catalog management, persistent activity records (Data); synchronization with a backend when online; fully local operation when offline.
 
 ---
 
-## 1. Maqsadlar va funksional talablar
+## Abstract
 
-| Bo‘lim | Tavsif |
-|--------|--------|
-| Kalkulyatsiya | Ishchi tanlanadi, mahsulotlar va miqdorlar kiritiladi, yozuvlar shakllantiriladi |
-| Mahsulotlar | Mahsulot nomi va narxi; qo‘shish / yangilash |
-| Ishchilar | Foydalanuvchilar ro‘yxati |
-| Data | Ishchilar bo‘yicha guruhlangan yozuvlar; Excelga eksport; (oflayn) zaxira va xavfsizlik |
+This repository contains two complementary Flutter applications: an **online** client (`mobile_app`) that communicates with a server via GraphQL, and an **offline** client (`mobile_offline`) that requires no server and persists data on-device. A **Go** backend is provided under `mobile_server`. **GitHub Actions** builds unsigned iOS artifacts (Payload packaged as `.ipa`) and a single downloadable Windows SFX executable (`hisoblagich-offline.exe`).
+
+**Keywords:** Flutter, GraphQL, Hive, local-first storage, Excel export, CI/CD.
 
 ---
 
-## 2. Arxitektura qisqacha
+## 1. Objectives and Functional Scope
+
+| Area | Description |
+|------|-------------|
+| Calculation | Select a worker, enter products and quantities, generate line items |
+| Products | Product name and price; create / update |
+| Workers | User directory |
+| Data | Records grouped by worker; Excel export; (offline) backup and security |
+
+---
+
+## 2. Architecture Overview
 
 ```
 ┌─────────────────┐     GraphQL      ┌─────────────────┐
@@ -33,55 +33,55 @@ Ushbu repozitoriyda ikki ajralmas Flutter-ilova taklifi jamlangan: **onlayn** (`
 │  (Flutter)      │                  │     (Go)        │
 └────────┬────────┘                  └─────────────────┘
          │
-         │ tarmoq yo‘q / lokal
+         │ offline / local-only
          ▼
 ┌─────────────────┐
-│ mobile_offline  │  Hive + mahalliy xotira
+│ mobile_offline  │  Hive + on-device storage
 │   (Flutter)     │
 └─────────────────┘
 ```
 
-**Oflayn ilova** server va tashqi ma’lumotlar bazasini talab qilmaydi; **onlayn ilova** server bilan ishlash uchun GraphQL mijozidan foydalanadi, zarurat bo‘lsa kutilayotgan yozuvlar mahalliy navbatda saqlanadi.
+The **offline** app does not require a server or external database. The **online** app uses a GraphQL client; pending operations may be queued locally when the network is unavailable.
 
 ---
 
-## 3. Repozitoriy tuzilishi
+## 3. Repository Layout
 
-| Katalog | Mazmun |
-|---------|--------|
-| `mobile_app/` | Onlayn Flutter-ilova (`calculator_app`) |
-| `mobile_offline/` | Oflayn Flutter-ilova (`calculator_offline`) |
+| Path | Contents |
+|------|----------|
+| `mobile_app/` | Online Flutter app (`calculator_app`) |
+| `mobile_offline/` | Offline Flutter app (`calculator_offline`) |
 | `mobile_server/` | GraphQL backend (Go) |
-| `.github/workflows/` | iOS va Windows uchun CI konfiguratsiyasi |
-| `Makefile` | Tezkor buyruqlar (masalan, `make run`) |
+| `.github/workflows/` | CI workflows for iOS and Windows |
+| `Makefile` | Convenience targets (e.g. `make run`) |
 
 ---
 
-## 4. Texnologik stek
+## 4. Technology Stack
 
-| Komponent | Texnologiya |
-|-----------|---------------|
+| Layer | Technology |
+|-------|------------|
 | UI | Flutter (Dart SDK ^3.11) |
-| Mahalliy saqlash | Hive CE, `flutter_secure_storage`, kriptografiya kutubxonalari |
-| Tarmoq (onlayn) | `graphql_flutter` |
-| Jadval eksport | `excel` (.xlsx) |
-| Fayl tanlash / ulashish | `file_picker`, `share_plus` |
+| Local persistence | Hive CE, `flutter_secure_storage`, cryptography helpers |
+| Networking (online) | `graphql_flutter` |
+| Tabular export | `excel` (.xlsx) |
+| Files & sharing | `file_picker`, `share_plus` |
 | Backend | Go (`mobile_server`) |
 
 ---
 
-## 5. Talablar
+## 5. Prerequisites
 
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) (barqaror kanal tavsiya etiladi)
-- Onlayn rejim va server: [Go](https://go.dev/dl/) (1.18+ tavsiya)
-- iOS qurilmada ishga tushirish: Xcode / Apple muhiti
-- Android: Android Studio yoki `adb` orqali ulangan qurilma
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) (stable channel recommended)
+- Online mode + server: [Go](https://go.dev/dl/) (1.18+ recommended)
+- iOS targets: Xcode / Apple toolchain
+- Android: Android Studio or a device connected via `adb`
 
 ---
 
-## 6. Mahalliy ishga tushirish
+## 6. Local Development
 
-### 6.1. Oflayn ilova
+### 6.1. Offline app
 
 ```bash
 cd mobile_offline
@@ -89,9 +89,9 @@ flutter pub get
 flutter run
 ```
 
-### 6.2. Onlayn ilova va server
+### 6.2. Online app and server
 
-Server (alohida terminal):
+Server (separate terminal):
 
 ```bash
 cd mobile_server
@@ -99,7 +99,7 @@ go mod tidy
 go run .
 ```
 
-Ilova:
+Application:
 
 ```bash
 cd mobile_app
@@ -107,60 +107,60 @@ flutter pub get
 flutter run
 ```
 
-GraphQL endpoint va sozlamalar loyihadagi `mobile_app` konfiguratsiyasiga mos qilinadi (masalan, `lib/graphql/`).
+Configure the GraphQL endpoint and related settings in `mobile_app` (see `lib/graphql/`).
 
-### 6.3. Makefile (ixtiyoriy)
+### 6.3. Makefile (optional)
 
 ```bash
-make get        # paketlarni yangilash
-make run        # hozirgi Makefile bo‘yicha (masalan, Chrome)
+make get        # refresh packages
+make run        # per current Makefile (e.g. Chrome)
 make run-server # Go server
 ```
 
 ---
 
-## 7. Platformalar va yig‘ish
+## 7. Platforms and Release Builds
 
-| Platforma | Buyruq (namuna) |
-|-----------|-------------------|
+| Platform | Example command |
+|----------|-----------------|
 | Android | `flutter build apk --release` |
-| iOS | `flutter build ios --release` (imzo — lokal/CI siyosatiga ko‘ra) |
+| iOS | `flutter build ios --release` (signing policy: local/CI) |
 | Windows | `flutter build windows --release` |
 | Linux | `flutter build linux --release` |
 | Web | `flutter build web` |
 
-Keng ekranlarda ilovada **NavigationRail**; tor ekranda **NavigationBar** ishlatiladi (breakpoint taxminan 720 px).
+Wide layouts use a **NavigationRail**; narrow layouts use a **NavigationBar** (breakpoint ~720 px).
 
 ---
 
-## 8. Uzluksiz integratsiya (GitHub Actions)
+## 8. Continuous Integration (GitHub Actions)
 
-Repozitoriyda **mobil oflayn** loyiha uchun quyidagi ish oqimlari mavjud:
+Workflows for the **offline** mobile project include:
 
-- **iOS:** `flutter build ios --release --no-codesign` — Payload tuzilishi `.ipa` sifatida artefakt sifatida saqlanadi (sertifikat talab qilinmaydi; qurilmaga o‘rnatish uchun keyinchalik imzolash talab qilinishi mumkin).
-- **Windows:** `flutter build windows` — chiqish `Release` papkasidan 7-Zip SFX yordamida **bitta** `hisoblagich-offline.exe` artefakti sifatida beriladi.
+- **iOS:** `flutter build ios --release --no-codesign` — Payload folder zipped as `.ipa` (no signing certificate in CI; device installation may require signing separately).
+- **Windows:** `flutter build windows` — output packaged with 7-Zip SFX into a **single** `hisoblagich-offline.exe` artifact.
 
-Workflow fayllari: `.github/workflows/build-mobile-offline-ios.yml`, `.github/workflows/build-mobile-offline-windows.yml`.
-
----
-
-## 9. Ma’lumotlar va maxfiylik
-
-Mahalliy ma’lumotlar Hive va xavfsiz saqlash modullari orqali boshqariladi. Tarmoqdan mustaqil ishlash uchun oflayn ilova tanlanadi. Foydalanuvchi ma’lumotlarining to‘liq saqlanishi va uzatilishi loyiha siyosati va server konfiguratsiyasiga bog‘liq.
+Workflow files: `.github/workflows/build-mobile-offline-ios.yml`, `.github/workflows/build-mobile-offline-windows.yml`.
 
 ---
 
-## 10. Hujjatlashtirish va keyingi qadamlar
+## 9. Data and Privacy
 
-- Har bir ilova ostida `README.md` — qisqa yo‘riqnoma.
-- Kod uslubi va struktura `lib/` ichida modullar bo‘yicha ajratilgan.
-
----
-
-## 11. Mualliflik va litsenziya
-
-Loyiha manbasi: repozitoriy egasi va hissadorlar. Litsenziya uchun repozitoriy ildizidagi `LICENSE` faylini (agar mavjud bo‘lsa) tekshiring.
+On-device data is managed through Hive and secure storage modules. Choose the offline app for operation without network connectivity. End-to-end handling of user data depends on deployment policy and server configuration.
 
 ---
 
-*Hujjat oxirgi marta loyiha tuzilishi va CI konfiguratsiyasiga mos ravishda yangilangan.*
+## 10. Documentation and Structure
+
+- Each app subdirectory includes a short `README.md`.
+- Application code is organized under `lib/` by feature.
+
+---
+
+## 11. Authorship and License
+
+Source ownership rests with the repository maintainers and contributors. See the root `LICENSE` file if present.
+
+---
+
+*Last updated to reflect the current project layout and CI configuration.*

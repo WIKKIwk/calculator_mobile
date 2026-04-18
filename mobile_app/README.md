@@ -1,24 +1,24 @@
-# calculator_app — Hisoblagich (onlayn)
+# calculator_app — Hisoblagich (online)
 
-**Tavsif:** mahsulot hisobi uchun Flutter-ilova; **GraphQL** orqali backend (`mobile_server`) bilan ishlaydi. Tarmoq uzilganda ayrim operatsiyalar mahalliy navbat orqali keyinga qoldirilishi mumkin.
+**Description:** Flutter client for product accounting; talks to the backend (`mobile_server`) over **GraphQL**. When offline, some operations may be deferred via a local queue.
 
-**Asosiy repozitoriy:** [README.md](../README.md) — loyiha annotatsiyasi, arxitektura, CI/CD va ishga tushirish.
+**Main repository:** [README.md](../README.md) — abstract, architecture, CI/CD, and run instructions.
 
-## Tezkor boshlash
+## Quick start
 
 ```bash
 flutter pub get
 flutter run
 ```
 
-Backend (alohida jarayon):
+Backend (separate process):
 
 ```bash
 cd ../mobile_server && go run .
 ```
 
-GraphQL URL va boshqa sozlamalar `lib/graphql/` va loyiha konfiguratsiyasida belgilanadi.
+Set the GraphQL URL and related options under `lib/graphql/` and project configuration.
 
-## Platformalar
+## Platforms
 
-Android, iOS, Web va boshqalar — Flutter qo‘llab-quvvatlash doirasida.
+Android, iOS, Web, and others supported by Flutter for this project.
