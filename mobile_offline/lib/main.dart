@@ -38,7 +38,7 @@ class CalculatorOfflineApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Hisoblagich (offline)',
+      title: 'Hisoblagich',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,

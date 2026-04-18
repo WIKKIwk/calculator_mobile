@@ -66,44 +66,37 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: colorScheme.surface,
       appBar: _currentIndex == 2
           ? null
-          : AppBar(
-              toolbarHeight: 48,
-              backgroundColor: colorScheme.surfaceContainer,
-              actions: _currentIndex == 3
-                  ? [
-                      IconButton(
-                        tooltip: 'Zaxira va xavfsizlik',
-                        icon: const Icon(Icons.enhanced_encryption_outlined),
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => const BackupSecurityScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      IconButton(
-                        tooltip: 'Faoliyat jurnali',
-                        icon: const Icon(Icons.analytics_outlined),
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => const ActivityLogScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ]
-                  : null,
-              title: Text(
-                'Hisoblagich (offline)',
-                style: TextStyle(
-                  color: colorScheme.onSurface,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
-                ),
-              ),
-            ),
+          : _currentIndex == 3
+              ? AppBar(
+                  toolbarHeight: 48,
+                  backgroundColor: colorScheme.surfaceContainer,
+                  title: const SizedBox.shrink(),
+                  actions: [
+                    IconButton(
+                      tooltip: 'Zaxira va xavfsizlik',
+                      icon: const Icon(Icons.enhanced_encryption_outlined),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const BackupSecurityScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      tooltip: 'Faoliyat jurnali',
+                      icon: const Icon(Icons.analytics_outlined),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const ActivityLogScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                )
+              : null,
       floatingActionButton: fab,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: useSideNav

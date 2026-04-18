@@ -1,6 +1,6 @@
 {
-    "name": "Hisoblagich offline",
-    "short_name": "Hisoblagich offline",
+    "name": "Hisoblagich",
+    "short_name": "Hisoblagich",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
