@@ -102,6 +102,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       );
     }
 
+    final bottomGesturePad = MediaQuery.viewPaddingOf(context).bottom;
+
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: _currentIndex == 2 || _currentIndex == 3
@@ -122,32 +124,47 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: useSideNav
           ? null
-          : NavigationBar(
-              height: 64,
-              selectedIndex: _currentIndex,
-              onDestinationSelected: _onDestinationSelected,
-              destinations: const [
-                NavigationDestination(
-                  icon: Icon(Icons.calculate_outlined),
-                  selectedIcon: Icon(Icons.calculate),
-                  label: 'Kalkulyatsiya',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.shopping_bag_outlined),
-                  selectedIcon: Icon(Icons.shopping_bag),
-                  label: 'Mahsulotlar',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.people_outline),
-                  selectedIcon: Icon(Icons.people),
-                  label: 'Ishchilar',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.data_usage_outlined),
-                  selectedIcon: Icon(Icons.data_usage),
-                  label: 'Data',
-                ),
-              ],
+          : ColoredBox(
+              color: colorScheme.surfaceContainer,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  NavigationBar(
+                    height: 64,
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    shadowColor: Colors.transparent,
+                    surfaceTintColor: Colors.transparent,
+                    indicatorColor: colorScheme.secondaryContainer,
+                    maintainBottomViewPadding: false,
+                    selectedIndex: _currentIndex,
+                    onDestinationSelected: _onDestinationSelected,
+                    destinations: const [
+                      NavigationDestination(
+                        icon: Icon(Icons.calculate_outlined),
+                        selectedIcon: Icon(Icons.calculate),
+                        label: 'Kalkulyatsiya',
+                      ),
+                      NavigationDestination(
+                        icon: Icon(Icons.shopping_bag_outlined),
+                        selectedIcon: Icon(Icons.shopping_bag),
+                        label: 'Mahsulotlar',
+                      ),
+                      NavigationDestination(
+                        icon: Icon(Icons.people_outline),
+                        selectedIcon: Icon(Icons.people),
+                        label: 'Ishchilar',
+                      ),
+                      NavigationDestination(
+                        icon: Icon(Icons.data_usage_outlined),
+                        selectedIcon: Icon(Icons.data_usage),
+                        label: 'Data',
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: bottomGesturePad, width: double.infinity),
+                ],
+              ),
             ),
       body: useSideNav
           ? Row(
