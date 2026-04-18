@@ -197,12 +197,29 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
               ],
             )
-          : _buildBody(
+          : _mobileNarrowBody(
               context,
               colorScheme,
               listBottomPad: listBottomPad,
             ),
     );
+  }
+
+  /// Pastki NavigationBar; AppBar yo'q tablar (Ishchilar, Data) uchun status bar ostiga chiqmasin.
+  Widget _mobileNarrowBody(
+    BuildContext context,
+    ColorScheme colorScheme, {
+    required double listBottomPad,
+  }) {
+    final body = _buildBody(
+      context,
+      colorScheme,
+      listBottomPad: listBottomPad,
+    );
+    if (_currentIndex == 2 || _currentIndex == 3) {
+      return SafeArea(bottom: false, child: body);
+    }
+    return body;
   }
 
   Widget _buildBody(

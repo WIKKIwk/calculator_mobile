@@ -156,10 +156,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             )
-          : _buildBody(
-              context,
-              colorScheme,
-              listBottomPad: listBottomPad,
+          : SafeArea(
+              bottom: false,
+              child: _buildBody(
+                context,
+                colorScheme,
+                listBottomPad: listBottomPad,
+              ),
             ),
     );
   }
