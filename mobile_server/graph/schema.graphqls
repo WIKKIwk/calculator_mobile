@@ -1,0 +1,45 @@
+type Product {
+  id: ID!
+  name: String!
+  price: Float!
+  createdAt: String!
+}
+
+type User {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  createdAt: String!
+}
+
+type Record {
+  id: ID!
+  user: User!
+  product: Product!
+  quantity: Float!
+  createdAt: String!
+}
+
+input RecordInput {
+  productId: ID!
+  quantity: Float!
+}
+
+type Query {
+  products: [Product!]!
+  users: [User!]!
+  user(id: ID!): User
+  records: [Record!]!
+}
+
+type Mutation {
+  addProduct(name: String!, price: Float!): Product!
+  updateProduct(id: ID!, name: String!, price: Float!): Product!
+  deleteProduct(id: ID!): Boolean!
+  
+  createUser(firstName: String!, lastName: String!): User!
+  updateUser(id: ID!, firstName: String!, lastName: String!): User!
+  deleteUser(id: ID!): Boolean!
+
+  addRecords(userId: ID!, items: [RecordInput!]!): Boolean!
+}
