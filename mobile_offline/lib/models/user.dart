@@ -19,4 +19,12 @@ class User {
       createdAt: json['createdAt'] as String,
     );
   }
+
+  /// Sharif bo'sh bo'lishi mumkin.
+  String get displayName {
+    final f = firstName.trim();
+    final l = lastName.trim();
+    if (l.isEmpty) return f;
+    return '$f $l';
+  }
 }

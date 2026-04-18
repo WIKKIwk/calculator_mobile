@@ -134,7 +134,7 @@ class _RecordsScreenState extends State<RecordsScreen> {
                       child: Text(u.firstName.isNotEmpty ? u.firstName[0].toUpperCase() : 'I'),
                     ),
                     title: Text(
-                      '${u.firstName} ${u.lastName}',
+                      u.displayName,
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     subtitle: Text(

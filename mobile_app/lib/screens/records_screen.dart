@@ -176,7 +176,7 @@ class _RecordsScreenState extends State<RecordsScreen> {
                     foregroundColor: colorScheme.onPrimaryContainer,
                     child: Text(u.firstName.isNotEmpty ? u.firstName[0].toUpperCase() : 'I'),
                   ),
-                  title: Text('${u.firstName} ${u.lastName}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                  title: Text(u.displayName, style: const TextStyle(fontWeight: FontWeight.w600)),
                   subtitle: Text('Jami hisob: ${formatNum(totalSum)} so\'m', 
                     style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.w600, fontSize: 13)
                   ),

@@ -164,7 +164,7 @@ class _UserCalculationScreenState extends State<UserCalculationScreen> {
       );
       await AppLocalStore.logEvent(
         'kalkulyatsiya_saqlash',
-        '${widget.user.firstName} ${widget.user.lastName}',
+        widget.user.displayName,
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -203,7 +203,7 @@ class _UserCalculationScreenState extends State<UserCalculationScreen> {
           children: [
             const Text('Kalkulyatsiya'),
             Text(
-              '${widget.user.firstName} ${widget.user.lastName}',
+              widget.user.displayName,
               style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
             ),
           ],

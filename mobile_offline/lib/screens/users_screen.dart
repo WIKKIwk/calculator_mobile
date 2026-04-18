@@ -142,7 +142,7 @@ class _UsersScreenState extends State<UsersScreen> {
                       builder: (ctx) => AlertDialog(
                         title: const Text('O\'chirishni tasdiqlang'),
                         content: Text(
-                          '${user.firstName} ${user.lastName} ni rostdan ham o\'chirmoqchimisiz?',
+                          '${user.displayName} ni rostdan ham o\'chirmoqchimisiz?',
                         ),
                         actions: [
                           TextButton(
@@ -183,7 +183,7 @@ class _UsersScreenState extends State<UsersScreen> {
                         ),
                       ),
                       title: Text(
-                        '${user.firstName} ${user.lastName}',
+                        user.displayName,
                         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                       ),
                       subtitle: Text(
@@ -257,8 +257,9 @@ class _AddEditUserSheetState extends State<_AddEditUserSheet> {
           lastName: _lastController.text.trim(),
         );
       }
-      final label =
-          '${_firstController.text.trim()} ${_lastController.text.trim()}';
+      final f = _firstController.text.trim();
+      final l = _lastController.text.trim();
+      final label = l.isEmpty ? f : '$f $l';
       await AppLocalStore.logEvent(
         isEdit ? 'ishchi_yangilandi' : 'ishchi_qoshildi',
         label,
@@ -336,13 +337,12 @@ class _AddEditUserSheetState extends State<_AddEditUserSheet> {
             TextFormField(
               controller: _lastController,
               decoration: const InputDecoration(
-                labelText: 'Sharif',
+                labelText: 'Sharif (ixtiyoriy)',
                 prefixIcon: Icon(Icons.badge_outlined),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
               ),
-              validator: (v) => v == null || v.isEmpty ? 'Sharif kiriting' : null,
               textCapitalization: TextCapitalization.words,
             ),
             const SizedBox(height: 32),

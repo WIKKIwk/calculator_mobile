@@ -23,6 +23,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+  static const double _kSideNavBreakpoint = 720;
+
   int _refreshKey = 0;
   int _currentIndex = 0;
 
@@ -55,6 +57,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     setState(() => _refreshKey++);
   }
 
+  void _onDestinationSelected(int idx) {
+    const tabs = ['kalkulyatsiya', 'mahsulotlar', 'ishchilar', 'data'];
+    AppLocalStore.logEvent('tab', tabs[idx]);
+    setState(() => _currentIndex = idx);
+  }
+
   void _openAddSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -68,23 +76,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final useSideNav =
+        MediaQuery.sizeOf(context).width >= _kSideNavBreakpoint;
+    final listBottomPad = useSideNav ? 24.0 : 100.0;
 
     Widget? fab;
-    if (_currentIndex == 0) {
+    if (_currentIndex == 1) {
       fab = FloatingActionButton.extended(
         onPressed: () => _openAddSheet(context),
         icon: const Icon(Icons.add),
         label: const Text('Qo\'shish'),
         elevation: 4,
       );
-    }
-
-    String appBarTitle = 'Hisoblagich';
-    String appBarSubtitle = 'Mahsulotlar ro\'yxati';
-    if (_currentIndex == 1) {
-      appBarSubtitle = 'Kalkulyatsiya: Ishchini tanlang';
-    } else if (_currentIndex == 3) {
-      appBarSubtitle = 'Kiritilgan ma\'lumotlar';
     }
 
     return Scaffold(
@@ -120,72 +123,116 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
               ]
             : null,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              appBarTitle,
-              style: TextStyle(
-                color: colorScheme.onSurface,
-                fontWeight: FontWeight.w700,
-                fontSize: 16,
-              ),
-            ),
-            Text(
-              appBarSubtitle,
-              style: TextStyle(
-                color: colorScheme.onSurfaceVariant,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+        title: Text(
+          'Hisoblagich',
+          style: TextStyle(
+            color: colorScheme.onSurface,
+            fontWeight: FontWeight.w700,
+            fontSize: 16,
+          ),
         ),
       ),
-      floatingActionButton: fab,
-      bottomNavigationBar: NavigationBar(
-        height: 64,
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (idx) {
-          const tabs = ['mahsulotlar', 'kalkulyatsiya', 'ishchilar', 'data'];
-          AppLocalStore.logEvent('tab', tabs[idx]);
-          setState(() {
-            _currentIndex = idx;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.shopping_bag_outlined),
-            selectedIcon: Icon(Icons.shopping_bag),
-            label: 'Mahsulotlar',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.calculate_outlined),
-            selectedIcon: Icon(Icons.calculate),
-            label: 'Kalkulyatsiya',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.people_outline),
-            selectedIcon: Icon(Icons.people),
-            label: 'Ishchilar',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.data_usage_outlined),
-            selectedIcon: Icon(Icons.data_usage),
-            label: 'Data',
-          ),
-        ],
-      ),
-      body: _buildBody(context, colorScheme),
+      floatingActionButton: useSideNav ? null : fab,
+      bottomNavigationBar: useSideNav
+          ? null
+          : NavigationBar(
+              height: 64,
+              selectedIndex: _currentIndex,
+              onDestinationSelected: _onDestinationSelected,
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.calculate_outlined),
+                  selectedIcon: Icon(Icons.calculate),
+                  label: 'Kalkulyatsiya',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.shopping_bag_outlined),
+                  selectedIcon: Icon(Icons.shopping_bag),
+                  label: 'Mahsulotlar',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.people_outline),
+                  selectedIcon: Icon(Icons.people),
+                  label: 'Ishchilar',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.data_usage_outlined),
+                  selectedIcon: Icon(Icons.data_usage),
+                  label: 'Data',
+                ),
+              ],
+            ),
+      body: useSideNav
+          ? Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                NavigationRail(
+                  selectedIndex: _currentIndex,
+                  onDestinationSelected: _onDestinationSelected,
+                  labelType: NavigationRailLabelType.all,
+                  backgroundColor: colorScheme.surfaceContainer,
+                  indicatorColor: colorScheme.secondaryContainer,
+                  leading: const SizedBox(height: 8),
+                  trailing: fab != null
+                      ? Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: fab,
+                        )
+                      : null,
+                  destinations: const [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.calculate_outlined),
+                      selectedIcon: Icon(Icons.calculate),
+                      label: Text('Kalkulyatsiya'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.shopping_bag_outlined),
+                      selectedIcon: Icon(Icons.shopping_bag),
+                      label: Text('Mahsulotlar'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.people_outline),
+                      selectedIcon: Icon(Icons.people),
+                      label: Text('Ishchilar'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.data_usage_outlined),
+                      selectedIcon: Icon(Icons.data_usage),
+                      label: Text('Data'),
+                    ),
+                  ],
+                ),
+                VerticalDivider(
+                  width: 1,
+                  thickness: 1,
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                ),
+                Expanded(
+                  child: _buildBody(
+                    context,
+                    colorScheme,
+                    listBottomPad: listBottomPad,
+                  ),
+                ),
+              ],
+            )
+          : _buildBody(
+              context,
+              colorScheme,
+              listBottomPad: listBottomPad,
+            ),
     );
   }
 
-  Widget _buildBody(BuildContext context, ColorScheme colorScheme) {
+  Widget _buildBody(
+    BuildContext context,
+    ColorScheme colorScheme, {
+    required double listBottomPad,
+  }) {
     if (_currentIndex == 2) return const UsersScreen();
     if (_currentIndex == 3) return const RecordsScreen();
 
-    if (_currentIndex == 1) {
+    if (_currentIndex == 0) {
       // Kalkulyatsiya - Ishchilarni ko'rsatish
       return Query(
         key: ValueKey('users_$_refreshKey'),
@@ -207,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
           if (users.isEmpty) {
             return ListView(
-              padding: const EdgeInsets.only(top: 8, bottom: 100),
+              padding: EdgeInsets.only(top: 8, bottom: listBottomPad),
               children: [
                 if (result.hasException && cached) const OfflineHintBanner(),
                 const Center(child: Text('Hali ishchilar qo\'shilmagan')),
@@ -216,7 +263,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.only(top: 8, bottom: 100),
+            padding: EdgeInsets.only(top: 8, bottom: listBottomPad),
             itemCount: users.length + (result.hasException && cached ? 1 : 0),
             itemBuilder: (ctx, i) {
               if (result.hasException && cached && i == 0) {
@@ -236,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   foregroundColor: colorScheme.onPrimaryContainer,
                   child: Text(user.firstName.isNotEmpty ? user.firstName[0].toUpperCase() : 'I'),
                 ),
-                title: Text('${user.firstName} ${user.lastName}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                title: Text(user.displayName, style: const TextStyle(fontWeight: FontWeight.w600)),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               );
             },
@@ -245,7 +292,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       );
     }
 
-    // Mahsulotlar (Index 0)
+    // Mahsulotlar
     return Query(
       key: ValueKey('products_$_refreshKey'),
         options: QueryOptions(
@@ -297,7 +344,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           onRefresh: handleRefresh,
           child: ListView.builder(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.only(top: 8, bottom: 100),
+            padding: EdgeInsets.only(top: 8, bottom: listBottomPad),
             itemCount: products.length + (result.hasException && cached ? 1 : 0),
             itemBuilder: (_, i) {
               if (result.hasException && cached && i == 0) {
