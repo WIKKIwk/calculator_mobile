@@ -28,7 +28,7 @@ class CalculatorApp extends StatelessWidget {
     return GraphQLProvider(
       client: GraphQLConfig.client,
       child: MaterialApp(
-        title: 'Hisoblagich',
+        title: 'Hisoblagich (online)',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,

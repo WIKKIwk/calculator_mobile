@@ -124,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ]
             : null,
         title: Text(
-          'Hisoblagich',
+          'Hisoblagich (online)',
           style: TextStyle(
             color: colorScheme.onSurface,
             fontWeight: FontWeight.w700,
