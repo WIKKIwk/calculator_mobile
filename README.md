@@ -138,7 +138,7 @@ Wide layouts use a **NavigationRail**; narrow layouts use a **NavigationBar** (b
 Workflows for the **offline** mobile project include:
 
 - **iOS:** `flutter build ios --release --no-codesign` — Payload folder zipped as `.ipa` (no signing certificate in CI; device installation may require signing separately).
-- **Windows:** `flutter build windows` — output packaged with 7-Zip SFX into a **single** `hisoblagich-offline.exe` artifact.
+- **Windows:** `flutter build windows` — Inno Setup produces a single `hisoblagich-offline-setup.exe` installer (default install folder under `%LocalAppData%\Programs\`, Start menu shortcut, entry in **Settings → Apps**). It is not a raw “portable” SFX archive.
 
 Workflow files: `.github/workflows/build-mobile-offline-ios.yml`, `.github/workflows/build-mobile-offline-windows.yml`.
 

@@ -12,7 +12,9 @@ AppId={{F4E8B2A1-7C3D-4F6E-9B1A-2D8E4C6F0A5B}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
+UninstallDisplayName={#MyAppName}
 DefaultDirName={localappdata}\Programs\HisoblagichOffline
+DisableProgramGroupPage=no
 DefaultGroupName={#MyAppName}
 PrivilegesRequired=lowest
 OutputDir=..\..\build\installer_out
@@ -21,7 +23,6 @@ ArchitecturesInstallIn64BitMode=x64
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
-DisableProgramGroupPage=no
 UninstallDisplayIcon={app}\{#MyAppExeName}
 
 [Tasks]

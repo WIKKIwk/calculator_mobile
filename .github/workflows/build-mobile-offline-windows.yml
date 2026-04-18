@@ -1,4 +1,4 @@
-# Windows: bitta yuklab olinadigan portable .exe (7-Zip SFX: ichida to'liq Release).
+# Windows: Inno Setup — bitta o'rnatuvchi .exe (Start menyu + Ilovalar ro'yxati, Desktop emas).
 name: mobile_offline Windows
 
 on:
@@ -38,65 +38,32 @@ jobs:
         working-directory: mobile_offline
         run: flutter build windows --release
 
-      - name: Install 7-Zip
-        run: choco install 7zip.install -y --no-progress
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
 
-      - name: Yig'ish — bitta hisoblagich-offline.exe (SFX)
+      - name: Compile installer
         shell: pwsh
         run: |
-          $ErrorActionPreference = "Stop"
-          $ws = $env:GITHUB_WORKSPACE
-          $rel = Join-Path $ws "mobile_offline\build\windows\x64\runner\Release"
-          $outDir = Join-Path $ws "mobile_offline\build\sfx_out"
-          New-Item -ItemType Directory -Force -Path $outDir | Out-Null
-          $seven = "C:\Program Files\7-Zip\7z.exe"
-          if (-not (Test-Path $seven)) { throw "7z.exe topilmadi" }
+          $candidates = @(
+            (Join-Path $env:ProgramFiles "Inno Setup 6\ISCC.exe"),
+            (Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe")
+          )
+          $iscc = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $iscc) { throw "ISCC.exe topilmadi." }
+          $iss = Join-Path $env:GITHUB_WORKSPACE "mobile_offline\windows\installer\hisoblagich_offline.iss"
+          & $iscc $iss
+          Get-ChildItem -Recurse (Join-Path $env:GITHUB_WORKSPACE "mobile_offline\build\installer_out")
 
-          $bundle = Join-Path $ws "bundle_tmp.7z"
-          if (Test-Path $bundle) { Remove-Item $bundle -Force }
-          Push-Location $rel
-          try {
-            & $seven a -t7z -mx=9 $bundle *
-          } finally { Pop-Location }
-
-          $sfx = Get-ChildItem "C:\Program Files\7-Zip" -Filter "7z.sfx" -ErrorAction SilentlyContinue | Select-Object -First 1
-          if (-not $sfx) {
-            $sfx = Get-ChildItem "C:\Program Files\7-Zip" -Filter "*.sfx" -ErrorAction SilentlyContinue | Select-Object -First 1
-          }
-          if (-not $sfx) {
-            Get-ChildItem "C:\Program Files\7-Zip"
-            throw "7z.sfx topilmadi."
-          }
-
-          $cfg = Join-Path $ws "sfx_config.txt"
-          $utf8BOM = New-Object System.Text.UTF8Encoding $true
-          $text = ";!@Install@!UTF-8!`r`nTitle=Hisoblagich (offline)`r`nExecuteFile=calculator_offline.exe`r`n;!@InstallEnd@!`r`n"
-          [System.IO.File]::WriteAllText($cfg, $text, $utf8BOM)
-
-          $portable = Join-Path $outDir "hisoblagich-offline.exe"
-          $fs = [System.IO.File]::Create($portable)
-          try {
-            foreach ($p in @($sfx.FullName, $cfg, $bundle)) {
-              $b = [System.IO.File]::ReadAllBytes($p)
-              $fs.Write($b, 0, $b.Length)
-            }
-          } finally { $fs.Close() }
-
-          Remove-Item $bundle -Force -ErrorAction SilentlyContinue
-          Remove-Item $cfg -Force -ErrorAction SilentlyContinue
-
-          Get-Item $portable | Select-Object FullName, Length
-
-      - name: Artefakt ildiziga (zip ichida faqat bitta .exe)
+      - name: Copy artifact to repo root
         shell: pwsh
         run: |
           Copy-Item -Force `
-            (Join-Path $env:GITHUB_WORKSPACE "mobile_offline\build\sfx_out\hisoblagich-offline.exe") `
-            (Join-Path $env:GITHUB_WORKSPACE "hisoblagich-offline.exe")
+            (Join-Path $env:GITHUB_WORKSPACE "mobile_offline\build\installer_out\hisoblagich-offline-setup.exe") `
+            (Join-Path $env:GITHUB_WORKSPACE "hisoblagich-offline-setup.exe")
 
-      - name: Upload — yagona fayl
+      - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
           name: hisoblagich-offline-${{ github.run_number }}
-          path: hisoblagich-offline.exe
+          path: hisoblagich-offline-setup.exe
           if-no-files-found: error

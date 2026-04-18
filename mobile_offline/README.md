@@ -17,4 +17,4 @@ Android, iOS, Linux, Windows, Web — per platforms enabled via `flutter create`
 
 ## CI
 
-GitHub Actions: iOS (unsigned `.ipa`) and Windows (single SFX `.exe`) — see the root README.
+GitHub Actions: iOS (unsigned `.ipa`) and Windows (Inno Setup `hisoblagich-offline-setup.exe`) — see the root README.
